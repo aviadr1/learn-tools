@@ -13,7 +13,7 @@ def convert(solutions_file, questions_file, magic):
         lines = cell['source']
         match = re.search(magic, lines, re.MULTILINE)
         if match is not None:
-            print('\t', match.
+            print('\t', match)
             continue
 
         cell['source'] = ""
