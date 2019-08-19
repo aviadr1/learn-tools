@@ -6,6 +6,7 @@ from pathlib import Path
 import open_from
 import questions
 import make_toc
+import book_fix_filenames
 
 def execute(command):
     print()
@@ -34,6 +35,9 @@ def perform(args):
             shutil.rmtree(str(docs_content))
         except FileNotFoundError:
             pass
+
+        # make nice filenames
+        book_fix_filenames.main(content=root / 'content')
 
         # questions
         questions.perform(args)

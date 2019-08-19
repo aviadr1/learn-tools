@@ -46,17 +46,22 @@ def make_toc(site_root):
 
 
 
-def main():
+def main(content=None):
     #parser = argparse.ArgumentParser(description='fix filenames for jupyter-book support')
     #args = vars(parser.parse_args())
-    
-    try:
-        content = find_content_root()
-    except FileNotFoundError:
-        content = Path('.').resolve()
-        print('not inside content folder, use current folder',  content, '?' )
-        if input('Y/N:').upper() != 'Y':
-            raise
+    if not content: 
+        try:
+            content = find_content_root(content)
+        except FileNotFoundError:
+            content = Path('.').resolve()
+            print('not inside content folder, use current folder',  content, '?' )
+            if input('Y/N:').upper() != 'Y':
+                raise
+    else:
+        content = Path(content).resolve()
+        print(content)
+        assert content.exists()
+        assert content.is_dir()
 
     notebooks = find_all_notebooks(content)
     for nb in notebooks:
