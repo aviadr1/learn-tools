@@ -1,8 +1,12 @@
 from pathlib import Path
 import nbformat
 import urllib.parse
-from git import Repo
 import traceback
+
+
+GITHUB_BASE = 'https://github.com/'
+COLAB_BASE = "https://colab.research.google.com/github/"
+GITHUB_POSTFIX = ".git"
 
 
 def find_project_root(start_dir='.'):
@@ -26,13 +30,10 @@ def find_all_notebooks(start_dir='.'):
 
 
 def get_colab_base_url(project_root):
+    from git import Repo
     repo = Repo(project_root)
     assert not repo.bare
-    
-    GITHUB_BASE = 'https://github.com/'
-    COLAB_BASE = "https://colab.research.google.com/github/"
-    GITHUB_POSTFIX = ".git"
-    
+        
     github_url = repo.remotes.origin.url
     # print(github_url)
     assert github_url.startswith(GITHUB_BASE)
@@ -57,37 +58,55 @@ def get_colab_url(notebook_filename, project_root, colab_github_url):
     return full_url
 
 
+OPEN_IN_COLAB_MARKDOWN = """
+"[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]({})"
+"""
+
+OPEN_IN_COLAB_HTML = """
+<a href="{}" target="_blank">
+<img src="https://colab.research.google.com/assets/colab-badge.svg" 
+     title="Open this file in Google Colab" alt="Colab"/>
+</a>
+"""
+
 def ensure_colab_button(notebook_filename, project_root, colab_github_url):
     with open(notebook_filename, encoding='utf8') as fin:
         nb = nbformat.read(fin, nbformat.NO_CONVERT)
 
     cell0 = nb['cells'][0]
     colab_url = get_colab_url(notebook_filename, project_root, colab_github_url)
-    if not colab_url in cell0['source']:
+    button = OPEN_IN_COLAB_HTML.format(colab_url)
+    rewrite = False
+    if not COLAB_BASE in cell0['source']:
         # add colab button
-
-        button = "[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]({})".format(colab_url)
         colab_cell = nbformat.v4.new_markdown_cell(button)
         nb['cells'].insert(0, colab_cell)
+        rewrite = True
+    elif cell0['source'] != button:
+        cell0['source'] = button
+        rewrite = True
 
+    if rewrite:
         with open(notebook_filename, "w", encoding="utf8") as f:
             print("adding colab to", notebook_filename)
             nbformat.write(nb, f)
 
 
 
-def main():
-    root = find_project_root('.')
+def main(root='.'):
+    root = find_project_root(root)
     print('project root:', root)
 
     notebooks = find_all_notebooks(root)
     colab_base_url = get_colab_base_url(root)
     print('colab:', colab_base_url)
+    print()
+
     for notebook in notebooks:
         print(notebook)
         try:
             ensure_colab_button(notebook, root, colab_base_url)
-        except Exception as ex:
+        except Exception:
             traceback.print_exc()
 
 if __name__ == '__main__':
