@@ -36,20 +36,13 @@ def perform(args):
         except FileNotFoundError:
             pass
 
-        print()
-        print("make nice filenames")
-        print('-' * 10)
+        # make nice filenames
         book_fix_filenames.main(content=root / 'content')
 
-        print()
-        print("questions")
-        print('-' * 10)
+        # questions
         questions.perform(args)
 
         # update open in collab
-        print()
-        print("update open in collab")
-        print('-' * 10)
         open_from.main(root=root)
 
         # 2. copy content
