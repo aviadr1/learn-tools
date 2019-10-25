@@ -83,6 +83,15 @@ def ensure_colab_button(notebook_filename, project_root, colab_github_url):
         nb['cells'].insert(0, colab_cell)
         rewrite = True
     elif cell0['source'] != button:
+        DEBUG = True
+        if DEBUG:
+            import difflib
+            print(
+                [f"pos {i} {li}"
+                 for i, li in enumerate(difflib.ndiff(cell0['source'], button))
+                 if li[0] != ' '
+                ])
+
         cell0['source'] = button
         rewrite = True
 
