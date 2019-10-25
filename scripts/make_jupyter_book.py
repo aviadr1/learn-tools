@@ -84,13 +84,13 @@ def perform(args):
         shutil.copytree(root / CONTENT_FOLDER, docs_content)
 
         # 3. create toc
-        execute('jupyter-book toc ' + str(docs))
+        execute(f'jupyter-book toc {docs}')
 
         # 4. make hierarchial toc
         make_toc.main(root=root)
 
         # 5. build jupyter-book
-        execute('jupyter-book build ' + str(docs), failfast)
+        execute(f'jupyter-book build --overwrite {docs}', failfast)
 
         # 6. git commit and push
         header("git commit and push")
