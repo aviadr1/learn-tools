@@ -10,13 +10,17 @@ def convert(solutions_file, questions_file, magic):
         if cell['cell_type'] != 'code':
             continue
 
-        lines = cell['source']
-        match = re.search(magic, lines, re.MULTILINE)
-        if match is not None:
-            print('\t', match)
-            continue
+        is_part_of_question = False
+        content = cell['source']
+        for line in content.splitlines():                
+            match = re.search(magic, line)
+            if match is not None:
+                print('\t', line)
+                is_part_of_question = True
+                break
 
-        cell['source'] = ""
+        if not is_part_of_question:
+            cell['source'] = ""
 
 
     with open(questions_file, "w", encoding="utf8") as questions:
