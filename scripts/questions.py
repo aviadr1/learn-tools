@@ -2,10 +2,11 @@ import nbformat
 import glob
 import argparse
 import re
-
+from pathlib import Path
 
 def convert(solutions_file, questions_file, magic):
-    nb = nbformat.read(solutions_file, nbformat.NO_CONVERT)
+    nb = nbformat.read(solutions_file, as_version=4)
+
     for cell in nb['cells']:
         if cell['cell_type'] != 'code':
             continue
@@ -22,6 +23,9 @@ def convert(solutions_file, questions_file, magic):
         if not is_part_of_question:
             cell['source'] = ""
 
+    # change the 'name' of the notebook to 
+    colab_metadata = nb.setdefault('metadata', {}).setdefault('colab', {})
+    colab_metadata['name'] = str(Path(questions_file).name)
 
     with open(questions_file, "w", encoding="utf8") as questions:
         nbformat.write(nb, questions)
