@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 nbformat = "*"
 pathlib = "*"
-jupyter-book = "*"
+jupyter-book = "<0.6.0"
 GitPython = "*"
 oyaml = "*"
 
