@@ -47,22 +47,25 @@ def perform(args):
         print("project root:", root)
         os.chdir(str(root))
 
-        try:
-            ### see: https://stackoverflow.com/questions/5139290/how-to-check-if-theres-nothing-to-be-committed-in-the-current-branch
-            # prevent running if there are local unstaged changes
-            execute('git diff --exit-code' + is_verbose(verbose), failfast)
-            # prevent running if there are changes that are staged but not committed
-            execute('git diff --cached --exit-code' + is_verbose(verbose), failfast)
-            # prevent untracked files in your content working tree that aren't ignored
-            execute(f'git ls-files {CONTENT_FOLDER} --other --exclude-standard --directory' + is_verbose(verbose), failfast)
-            
-        except RuntimeError as ex:
-            print("PLEASE FIX: there are local git changes", ex, file=sys.stderr)
-            sys.exit(1)
+        if args['git']:
+            try:
+                ### see: https://stackoverflow.com/questions/5139290/how-to-check-if-theres-nothing-to-be-committed-in-the-current-branch
+                # prevent running if there are local unstaged changes
+                execute('git diff --exit-code' + is_verbose(verbose), failfast)
+                # prevent running if there are changes that are staged but not committed
+                execute('git diff --cached --exit-code' + is_verbose(verbose), failfast)
+                # prevent untracked files in your content working tree that aren't ignored
+                execute(f'git ls-files {CONTENT_FOLDER} --other --exclude-standard --directory' + is_verbose(verbose), failfast)
+                
+            except RuntimeError as ex:
+                print("PLEASE FIX: there are local git changes", ex, file=sys.stderr)
+                sys.exit(1)
 
-        # pull
-        execute('git pull' + is_verbose(verbose), failfast)
-
+            # pull
+            execute('git pull' + is_verbose(verbose), failfast)
+        else:
+            print('not running git commands')
+        
         # delete docs/content
         try: 
             shutil.rmtree(str(docs_content))
@@ -84,6 +87,7 @@ def perform(args):
         shutil.copytree(root / CONTENT_FOLDER, docs_content)
 
         # 3. create toc
+        ### execute(f'jupyter-book toc --path-output {docs / "_data" / "toc.yml"} {docs}')  # jupyter-book>0.6.3
         execute(f'jupyter-book toc {docs}')
 
         # 4. make hierarchial toc
@@ -91,18 +95,20 @@ def perform(args):
 
         # 5. build jupyter-book
         execute(f'jupyter-book build --overwrite {docs}', failfast)
+        
 
-        # 6. git commit and push
-        header("git commit and push")
-        execute(f'git add {CONTENT_FOLDER}/.' + is_verbose(verbose), failfast)
-        execute(f'git add {DOCS_FOLDER}/.' + is_verbose(verbose), failfast)
-        ### see https://stackoverflow.com/questions/8123674/how-to-git-commit-nothing-without-an-error
-        any_changes = execute('git diff-index --quiet HEAD', failfast=False)
-        if any_changes != 0:
-            execute('git commit -m "update jupyter-book"' + is_verbose(verbose), failfast)
-            execute('git push' + is_verbose(verbose), failfast)
-        else:
-            print('nothing to commit or push')
+        if args['git']:
+            # 6. git commit and push
+            header("git commit and push")
+            execute(f'git add {CONTENT_FOLDER}/.' + is_verbose(verbose), failfast)
+            execute(f'git add {DOCS_FOLDER}/.' + is_verbose(verbose), failfast)
+            ### see https://stackoverflow.com/questions/8123674/how-to-git-commit-nothing-without-an-error
+            any_changes = execute('git diff-index --quiet HEAD', failfast=False)
+            if any_changes != 0:
+                execute('git commit -m "update jupyter-book"' + is_verbose(verbose), failfast)
+                execute('git push' + is_verbose(verbose), failfast)
+            else:
+                print('nothing to commit or push')
 
     finally:
         os.chdir(str(current_dir))
@@ -112,6 +118,7 @@ def main():
     parser.add_argument('--root', default=".", help="root folder for repository")
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--no-failfast', dest="failfast", action='store_false')
+    parser.add_argument('--no-git', dest="git", action='store_false')
     questions.add_args(parser)
     args = vars(parser.parse_args())
     perform(args)
