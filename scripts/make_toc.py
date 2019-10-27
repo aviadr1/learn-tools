@@ -37,6 +37,9 @@ def build_tree(toc):
 
     tree_toc = {}
     for node in toc:
+        if 'url' not in node:
+            print(node)
+            continue
         url = node['url'].split('/')[1:]
         # print(url)
         put(tree_toc, url, node, 0)
