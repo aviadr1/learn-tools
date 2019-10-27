@@ -116,7 +116,9 @@ def main(root='.'):
         try:
             ensure_colab_button(notebook, root, colab_base_url)
         except Exception:
+            print('\tXXX')
             traceback.print_exc()
+
 
 if __name__ == '__main__':
     main()
