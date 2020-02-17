@@ -72,6 +72,14 @@ def perform(args):
         except FileNotFoundError:
             pass
 
+        # delete .pytest files
+        try:
+            for f in (root / CONTENT_FOLDER).glob('**/.pytest_cache'):
+                print('deleting', f)
+                shutil.rmtree(f)
+        except FileNotFoundError:
+            pass
+
         header("make nice filenames")
         book_fix_filenames.main(content=root / CONTENT_FOLDER)
 
